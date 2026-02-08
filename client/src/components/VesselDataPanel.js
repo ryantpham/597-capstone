@@ -15,7 +15,29 @@ function VesselDataPanel({ onClose }) {
   const [fetchInfo, setFetchInfo] = useState(null);
 
   useEffect(() => {
-    fetchVesselData();
+    let interval;
+
+    async function poll() {
+      try {
+        const response = await fetch('/api/vessels');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (data.vessels.length > 0) {
+          setVessels(data.vessels);
+          setFetchInfo({ count: data.count, timestamp: data.timestamp });
+          setLoading(false);
+          setError(null);
+          clearInterval(interval);
+          return;
+        }
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+
+    poll();
+    interval = setInterval(poll, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   async function fetchVesselData() {
@@ -87,7 +109,7 @@ function VesselDataPanel({ onClose }) {
           {error && <div className="panel-status panel-error">Error: {error}</div>}
           {!loading && !error && vessels.length === 0 && (
             <div className="panel-status">
-              No vessel data yet. The server may still be collecting data — try refreshing in a few seconds.
+              Waiting for vessel data from the server...
             </div>
           )}
           {!loading && !error && vessels.length > 0 && (

@@ -3,7 +3,7 @@ const WebSocket = require('ws');
 const vesselMap = new Map();
 let ws = null;
 let reconnectTimeout = null;
-let reconnectDelay = 5000;
+const RECONNECT_INTERVAL = 10000;
 let receivedData = false;
 let messageCount = 0;
 
@@ -32,7 +32,6 @@ function startAISStream() {
 
       if (!receivedData) {
         receivedData = true;
-        reconnectDelay = 5000;
         console.log('[AIS] Receiving vessel data...');
       }
 
@@ -57,11 +56,10 @@ function startAISStream() {
     }
   });
 
-  ws.on('close', (code, reason) => {
-    const status = receivedData
-      ? `after receiving ${messageCount} messages`
-      : 'before receiving any data';
-    console.log(`[AIS] Disconnected (code: ${code}) ${status}. Reconnecting in ${reconnectDelay / 1000}s...`);
+  ws.on('close', (code) => {
+    if (receivedData) {
+      console.log(`[AIS] Disconnected (code: ${code}) after ${messageCount} messages. Reconnecting...`);
+    }
     ws = null;
     scheduleReconnect();
   });
@@ -76,11 +74,8 @@ function scheduleReconnect() {
   if (reconnectTimeout) return;
   reconnectTimeout = setTimeout(() => {
     reconnectTimeout = null;
-    if (!receivedData) {
-      reconnectDelay = Math.min(reconnectDelay * 2, 60000);
-    }
     startAISStream();
-  }, reconnectDelay);
+  }, RECONNECT_INTERVAL);
 }
 
 function getVessels() {
