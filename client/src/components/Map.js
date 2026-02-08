@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
 
@@ -20,6 +20,20 @@ const TILE_LAYERS = {
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
   },
 };
+
+function MapResizeHandler() {
+  const map = useMap();
+
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    observer.observe(map.getContainer().parentElement);
+    return () => observer.disconnect();
+  }, [map]);
+
+  return null;
+}
 
 function Map() {
   const [theme, setTheme] = useState('dark');
@@ -44,8 +58,10 @@ function Map() {
         maxBoundsViscosity={1.0}
         worldCopyJump={false}
         className="map-container"
-        zoomControl={true}
+        zoomControl={false}
       >
+        <ZoomControl position="bottomright" />
+        <MapResizeHandler />
         <TileLayer
           key={theme}
           url={tile.url}

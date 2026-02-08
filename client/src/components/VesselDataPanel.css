@@ -1,0 +1,144 @@
+.vessel-panel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.vessel-panel {
+  width: 90vw;
+  max-height: 85vh;
+  background: #16213e;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.vessel-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: #1a1a2e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.vessel-panel-title h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.vessel-panel-meta {
+  font-size: 12px;
+  color: #8892b0;
+  margin-top: 2px;
+  display: block;
+}
+
+.vessel-panel-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.panel-btn {
+  padding: 7px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.download-btn {
+  background: #1b4332;
+  color: #a7f3d0;
+}
+
+.download-btn:hover:not(:disabled) {
+  background: #245a42;
+}
+
+.download-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.refresh-btn {
+  background: #0f3460;
+  color: #93c5fd;
+}
+
+.refresh-btn:hover {
+  background: #164e8a;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e0e0e0;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.vessel-panel-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.panel-status {
+  padding: 48px 24px;
+  text-align: center;
+  color: #8892b0;
+  font-size: 14px;
+}
+
+.panel-error {
+  color: #fca5a5;
+}
+
+.vessel-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vessel-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.vessel-table th {
+  background: #0f3460;
+  color: #c0d0e8;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.vessel-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: #c0c0c0;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+  white-space: nowrap;
+}
+
+.vessel-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
