@@ -7,6 +7,29 @@ const RECONNECT_INTERVAL = 10000;
 let receivedData = false;
 let messageCount = 0;
 
+// AIS ship type codes → category
+function getShipCategory(typeCode) {
+  if (typeCode >= 70 && typeCode <= 79) return 'Cargo';
+  if (typeCode >= 80 && typeCode <= 89) return 'Tanker';
+  if (typeCode >= 60 && typeCode <= 69) return 'Passenger';
+  if (typeCode === 30) return 'Fishing';
+  if (typeCode === 31 || typeCode === 32) return 'Towing';
+  if (typeCode === 33) return 'Dredging';
+  if (typeCode === 34) return 'Diving';
+  if (typeCode === 35) return 'Military';
+  if (typeCode === 36) return 'Sailing';
+  if (typeCode === 37) return 'Pleasure Craft';
+  if (typeCode >= 40 && typeCode <= 49) return 'High Speed Craft';
+  if (typeCode === 50) return 'Pilot Vessel';
+  if (typeCode === 51) return 'Search & Rescue';
+  if (typeCode === 52) return 'Tug';
+  if (typeCode === 53) return 'Port Tender';
+  if (typeCode === 55) return 'Law Enforcement';
+  if (typeCode === 58) return 'Medical';
+  if (typeCode >= 90 && typeCode <= 99) return 'Other';
+  return 'Unknown';
+}
+
 function startAISStream() {
   if (ws && ws.readyState === WebSocket.OPEN) return;
 
@@ -20,7 +43,7 @@ function startAISStream() {
     const subscription = {
       APIKey: process.env.AISSTREAM_API_KEY,
       BoundingBoxes: [[[24, -130], [50, -60]]],
-      FilterMessageTypes: ['PositionReport'],
+      FilterMessageTypes: ['PositionReport', 'ShipStaticData'],
     };
     ws.send(JSON.stringify(subscription));
   });
@@ -28,7 +51,6 @@ function startAISStream() {
   ws.on('message', (data) => {
     try {
       const parsed = JSON.parse(data);
-      if (parsed.MessageType !== 'PositionReport') return;
 
       if (!receivedData) {
         receivedData = true;
@@ -37,20 +59,43 @@ function startAISStream() {
 
       messageCount++;
       const meta = parsed.MetaData;
-      const report = parsed.Message.PositionReport;
 
-      vesselMap.set(meta.MMSI, {
-        mmsi: meta.MMSI,
-        shipName: meta.ShipName ? meta.ShipName.trim() : 'Unknown',
-        latitude: meta.latitude,
-        longitude: meta.longitude,
-        cog: report.Cog,
-        sog: report.Sog,
-        trueHeading: report.TrueHeading,
-        navStatus: report.NavigationalStatus,
-        timeUtc: meta.time_utc,
-        lastUpdated: Date.now(),
-      });
+      if (parsed.MessageType === 'PositionReport') {
+        const report = parsed.Message.PositionReport;
+        const existing = vesselMap.get(meta.MMSI) || {};
+
+        vesselMap.set(meta.MMSI, {
+          ...existing,
+          mmsi: meta.MMSI,
+          shipName: meta.ShipName ? meta.ShipName.trim() : existing.shipName || 'Unknown',
+          latitude: meta.latitude,
+          longitude: meta.longitude,
+          cog: report.Cog,
+          sog: report.Sog,
+          trueHeading: report.TrueHeading,
+          navStatus: report.NavigationalStatus,
+          timeUtc: meta.time_utc,
+          lastUpdated: Date.now(),
+        });
+      }
+
+      if (parsed.MessageType === 'ShipStaticData') {
+        const staticData = parsed.Message.ShipStaticData;
+        const existing = vesselMap.get(meta.MMSI) || {};
+        const typeCode = staticData.Type || 0;
+
+        vesselMap.set(meta.MMSI, {
+          ...existing,
+          mmsi: meta.MMSI,
+          shipName: staticData.Name ? staticData.Name.trim() : existing.shipName || 'Unknown',
+          imoNumber: staticData.ImoNumber || existing.imoNumber,
+          callSign: staticData.CallSign ? staticData.CallSign.trim() : existing.callSign,
+          shipType: typeCode,
+          shipCategory: getShipCategory(typeCode),
+          destination: staticData.Destination ? staticData.Destination.trim() : existing.destination,
+          lastUpdated: existing.lastUpdated || Date.now(),
+        });
+      }
     } catch (err) {
       console.error('[AIS] Parse error:', err.message);
     }
@@ -79,7 +124,8 @@ function scheduleReconnect() {
 }
 
 function getVessels() {
-  return Array.from(vesselMap.values());
+  // Only return vessels that have position data
+  return Array.from(vesselMap.values()).filter((v) => v.latitude != null);
 }
 
 function getVesselCount() {

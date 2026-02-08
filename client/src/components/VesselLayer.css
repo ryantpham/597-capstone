@@ -1,0 +1,80 @@
+.vessel-icon {
+  background: none !important;
+  border: none !important;
+}
+
+.vessel-popup-container .leaflet-popup-content-wrapper {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.vessel-popup-container .leaflet-popup-tip {
+  background: #1a1a2e;
+}
+
+.vessel-popup-container .leaflet-popup-close-button {
+  color: #8892b0;
+}
+
+.vessel-popup-container .leaflet-popup-close-button:hover {
+  color: #e0e0e0;
+}
+
+.vessel-popup {
+  font-size: 12px;
+  line-height: 1.5;
+  min-width: 180px;
+}
+
+.popup-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.popup-row:last-child {
+  border-bottom: none;
+}
+
+.popup-label {
+  color: #8892b0;
+  margin-right: 12px;
+  white-space: nowrap;
+}
+
+.popup-value {
+  color: #e0e0e0;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  text-align: right;
+}
+
+/* Cluster styling */
+.marker-cluster-small {
+  background-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.marker-cluster-small div {
+  background-color: rgba(59, 130, 246, 0.7) !important;
+  color: #fff;
+}
+
+.marker-cluster-medium {
+  background-color: rgba(249, 115, 22, 0.3) !important;
+}
+
+.marker-cluster-medium div {
+  background-color: rgba(249, 115, 22, 0.7) !important;
+  color: #fff;
+}
+
+.marker-cluster-large {
+  background-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.marker-cluster-large div {
+  background-color: rgba(239, 68, 68, 0.7) !important;
+  color: #fff;
+}
