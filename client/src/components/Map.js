@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
+import VesselLayer from './VesselLayer';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
+import './VesselLayer.css';
 
 const MAP_BOUNDS = [
   [-85, -180],
@@ -62,6 +64,7 @@ function Map() {
       >
         <ZoomControl position="bottomright" />
         <MapResizeHandler />
+        <VesselLayer />
         <TileLayer
           key={theme}
           url={tile.url}

@@ -58,12 +58,15 @@ function VesselDataPanel({ onClose }) {
 
   function downloadCSV() {
     const headers = [
-      'MMSI', 'Ship Name', 'Latitude', 'Longitude',
-      'SOG (knots)', 'COG', 'Heading', 'Nav Status', 'Last Updated',
+      'MMSI', 'Ship Name', 'Type', 'Call Sign', 'IMO',
+      'Latitude', 'Longitude', 'SOG (knots)', 'COG', 'Heading',
+      'Nav Status', 'Destination', 'Last Updated',
     ];
     const rows = vessels.map((v) => [
-      v.mmsi, escapeCSV(v.shipName), v.latitude, v.longitude,
-      v.sog, v.cog, v.trueHeading, v.navStatus, v.timeUtc,
+      v.mmsi, escapeCSV(v.shipName), escapeCSV(v.shipCategory || ''),
+      escapeCSV(v.callSign || ''), v.imoNumber || '',
+      v.latitude, v.longitude, v.sog, v.cog, v.trueHeading,
+      v.navStatus, escapeCSV(v.destination || ''), v.timeUtc,
     ]);
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -118,12 +121,14 @@ function VesselDataPanel({ onClose }) {
                 <tr>
                   <th>MMSI</th>
                   <th>Ship Name</th>
+                  <th>Type</th>
+                  <th>Call Sign</th>
                   <th>Latitude</th>
                   <th>Longitude</th>
                   <th>SOG (kn)</th>
                   <th>COG</th>
                   <th>Heading</th>
-                  <th>Nav Status</th>
+                  <th>Destination</th>
                   <th>Last Updated</th>
                 </tr>
               </thead>
@@ -132,12 +137,14 @@ function VesselDataPanel({ onClose }) {
                   <tr key={v.mmsi}>
                     <td>{v.mmsi}</td>
                     <td>{v.shipName}</td>
+                    <td>{v.shipCategory || '—'}</td>
+                    <td>{v.callSign || '—'}</td>
                     <td>{v.latitude?.toFixed(4)}</td>
                     <td>{v.longitude?.toFixed(4)}</td>
                     <td>{v.sog?.toFixed(1)}</td>
                     <td>{v.cog?.toFixed(1)}&deg;</td>
                     <td>{v.trueHeading}&deg;</td>
-                    <td>{v.navStatus}</td>
+                    <td>{v.destination || '—'}</td>
                     <td>{v.timeUtc}</td>
                   </tr>
                 ))}
