@@ -39,6 +39,7 @@ The Naval Intelligence Platform is a centralized web application that integrates
 - **Course:** CPSC 597 Capstone Project
 - **Institution:** California State University, Fullerton
 - **Advisor:** Dr. Bin Cong
+- **Reviewer:** Dr. Ning Chen
 - **Student:** Ryan Pham
 - **Semester:** Spring 2026
 
