@@ -13,6 +13,8 @@ function VesselDataPanel({ onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [fetchInfo, setFetchInfo] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
 
   useEffect(() => {
     let interval;
@@ -62,7 +64,7 @@ function VesselDataPanel({ onClose }) {
       'Latitude', 'Longitude', 'SOG (knots)', 'COG', 'Heading',
       'Nav Status', 'Destination', 'Last Updated',
     ];
-    const rows = vessels.map((v) => [
+    const rows = filtered.map((v) => [
       v.mmsi, escapeCSV(v.shipName), escapeCSV(v.shipCategory || ''),
       escapeCSV(v.callSign || ''), v.imoNumber || '',
       v.latitude, v.longitude, v.sog, v.cog, v.trueHeading,
@@ -77,6 +79,22 @@ function VesselDataPanel({ onClose }) {
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  const categories = [...new Set(vessels.map((v) => v.shipCategory).filter(Boolean))].sort();
+
+  const filtered = vessels.filter((v) => {
+    if (filterCategory && v.shipCategory !== filterCategory) return false;
+    if (searchTerm) {
+      const s = searchTerm.toLowerCase();
+      const matchName = (v.shipName || '').toLowerCase().includes(s);
+      const matchMMSI = String(v.mmsi).includes(s);
+      const matchCall = (v.callSign || '').toLowerCase().includes(s);
+      if (!matchName && !matchMMSI && !matchCall) return false;
+    }
+    return true;
+  });
+
+  const hasActiveFilter = searchTerm || filterCategory;
 
   return (
     <div className="vessel-panel-overlay">
@@ -94,7 +112,7 @@ function VesselDataPanel({ onClose }) {
             <button
               className="panel-btn download-btn"
               onClick={downloadCSV}
-              disabled={vessels.length === 0}
+              disabled={filtered.length === 0}
             >
               Download CSV
             </button>
@@ -107,6 +125,41 @@ function VesselDataPanel({ onClose }) {
           </div>
         </div>
 
+        {vessels.length > 0 && (
+          <div className="panel-filters">
+            <input
+              type="text"
+              className="filter-input"
+              placeholder="Search name, MMSI, call sign..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <select
+              className="filter-select"
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+            >
+              <option value="">All Types</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            {hasActiveFilter && (
+              <span className="filter-count">
+                {filtered.length} / {vessels.length}
+              </span>
+            )}
+            {hasActiveFilter && (
+              <button
+                className="filter-clear"
+                onClick={() => { setSearchTerm(''); setFilterCategory(''); }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="vessel-panel-body">
           {loading && <div className="panel-status">Loading vessel data...</div>}
           {error && <div className="panel-status panel-error">Error: {error}</div>}
@@ -115,7 +168,10 @@ function VesselDataPanel({ onClose }) {
               Waiting for vessel data from the server...
             </div>
           )}
-          {!loading && !error && vessels.length > 0 && (
+          {!loading && !error && vessels.length > 0 && filtered.length === 0 && (
+            <div className="panel-status">No vessels match the current filters.</div>
+          )}
+          {!loading && !error && filtered.length > 0 && (
             <table className="vessel-table">
               <thead>
                 <tr>
@@ -133,7 +189,7 @@ function VesselDataPanel({ onClose }) {
                 </tr>
               </thead>
               <tbody>
-                {vessels.map((v) => (
+                {filtered.map((v) => (
                   <tr key={v.mmsi}>
                     <td>{v.mmsi}</td>
                     <td>{v.shipName}</td>

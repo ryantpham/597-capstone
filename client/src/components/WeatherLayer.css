@@ -1,0 +1,33 @@
+.wind-arrow {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: wind-pulse 2s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.wind-arrow svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.4));
+}
+
+@keyframes wind-pulse {
+  0%   { opacity: 0.55; transform: scale(0.88); }
+  50%  { opacity: 1.00; transform: scale(1.08); }
+  100% { opacity: 0.55; transform: scale(0.88); }
+}
+
+.weather-tooltip {
+  font-size: 12px;
+  line-height: 1.5;
+  background: rgba(22, 33, 62, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #e0e0e0 !important;
+  border-radius: 4px !important;
+  padding: 6px 10px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+}
