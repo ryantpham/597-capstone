@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
 import VesselLayer from './VesselLayer';
+import WeatherLayer from './WeatherLayer';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
 import './VesselLayer.css';
@@ -37,7 +38,7 @@ function MapResizeHandler() {
   return null;
 }
 
-function Map() {
+function Map({ showWaves, showWind, onWeatherLoad }) {
   const [theme, setTheme] = useState('dark');
 
   const toggleTheme = () => {
@@ -65,6 +66,7 @@ function Map() {
         <ZoomControl position="bottomright" />
         <MapResizeHandler />
         <VesselLayer />
+        <WeatherLayer showWaves={showWaves} showWind={showWind} onWeatherLoad={onWeatherLoad} />
         <TileLayer
           key={theme}
           url={tile.url}
