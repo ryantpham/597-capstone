@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import VesselDataPanel from './components/VesselDataPanel';
 import WeatherDataPanel from './components/WeatherDataPanel';
 import SystemInfoPanel from './components/SystemInfoPanel';
+import FleetAnalyticsPanel from './components/FleetAnalyticsPanel';
 import './App.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
   const [showWavePanel, setShowWavePanel] = useState(false);
   const [showWindPanel, setShowWindPanel] = useState(false);
   const [showSystemInfo, setShowSystemInfo] = useState(false);
+  const [showFleetAnalytics, setShowFleetAnalytics] = useState(false);
 
   const handleWeatherLoad = useCallback((status) => setWeatherStatus(status), []);
 
@@ -34,6 +36,7 @@ function App() {
         {sidebarOpen && (
           <Sidebar
             onViewVesselData={() => setShowVesselData(true)}
+            onViewFleetAnalytics={() => setShowFleetAnalytics(true)}
             onViewSystemInfo={() => setShowSystemInfo(true)}
             showWaves={showWaves}
             showWind={showWind}
@@ -61,6 +64,9 @@ function App() {
       )}
       {showWindPanel && (
         <WeatherDataPanel type="wind" onClose={() => setShowWindPanel(false)} />
+      )}
+      {showFleetAnalytics && (
+        <FleetAnalyticsPanel onClose={() => setShowFleetAnalytics(false)} />
       )}
       {showSystemInfo && (
         <SystemInfoPanel onClose={() => setShowSystemInfo(false)} />

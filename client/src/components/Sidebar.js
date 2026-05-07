@@ -3,6 +3,7 @@ import './Sidebar.css';
 function Sidebar({
   onViewVesselData,
   onViewSystemInfo,
+  onViewFleetAnalytics,
   showWaves, showWind,
   onToggleWaves, onToggleWind,
   weatherStatus,
@@ -22,8 +23,11 @@ function Sidebar({
         <button className="sidebar-item" onClick={onViewVesselData}>
           View Vessel Data
         </button>
+        <button className="sidebar-item" onClick={onViewFleetAnalytics}>
+          Fleet Analytics
+        </button>
         <button className="sidebar-item" onClick={onViewSystemInfo}>
-          System Information
+          System Status
         </button>
 
         <span className="sidebar-section-label">Weather Overlays</span>
