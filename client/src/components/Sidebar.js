@@ -9,7 +9,7 @@ function Sidebar({
   showWaves, showWind,
   onToggleWaves, onToggleWind,
   weatherStatus,
-  onViewWaveData, onViewWindData,
+  onViewWeatherData,
 }) {
   const isLoading = weatherStatus === 'loading';
   const isError   = weatherStatus === 'error';
@@ -34,9 +34,6 @@ function Sidebar({
         <button className="sidebar-item" onClick={onViewFleetAnalytics}>
           Fleet Analytics
         </button>
-        <button className="sidebar-item" onClick={onViewSystemInfo}>
-          System Status
-        </button>
 
         <span className="sidebar-section-label">Weather Overlays</span>
 
@@ -47,36 +44,43 @@ function Sidebar({
           <div className="sidebar-weather-status error">Weather data unavailable</div>
         )}
 
-        <button
-          className="sidebar-item"
-          onClick={onViewWaveData}
-          disabled={!isReady}
-        >
-          View Wave Height
-        </button>
-        <button
-          className="sidebar-item"
-          onClick={onViewWindData}
-          disabled={!isReady}
-        >
-          View Wind Direction
-        </button>
+        <div className="sw-row">
+          <span className="sw-label">Wave Height</span>
+          <button
+            role="switch"
+            aria-checked={showWaves}
+            className={`sw-track${showWaves ? ' on' : ''}`}
+            onClick={onToggleWaves}
+            disabled={isLoading}
+          >
+            <span className="sw-knob" />
+          </button>
+        </div>
+
+        <div className="sw-row">
+          <span className="sw-label">Wind Direction</span>
+          <button
+            role="switch"
+            aria-checked={showWind}
+            className={`sw-track${showWind ? ' on' : ''}`}
+            onClick={onToggleWind}
+            disabled={isLoading}
+          >
+            <span className="sw-knob" />
+          </button>
+        </div>
 
         <button
-          className={`sidebar-item${showWaves ? ' active' : ''}`}
-          onClick={onToggleWaves}
-          disabled={isLoading}
+          className="sidebar-item"
+          onClick={onViewWeatherData}
+          disabled={!isReady}
         >
-          Wave Height
-          {showWaves && !isLoading && <span className="sidebar-item-badge">ON</span>}
+          Weather Data
         </button>
-        <button
-          className={`sidebar-item${showWind ? ' active' : ''}`}
-          onClick={onToggleWind}
-          disabled={isLoading}
-        >
-          Wind Direction
-          {showWind && !isLoading && <span className="sidebar-item-badge">ON</span>}
+
+        <span className="sidebar-section-label">Health &amp; Status</span>
+        <button className="sidebar-item" onClick={onViewSystemInfo}>
+          System Monitor
         </button>
       </nav>
     </div>

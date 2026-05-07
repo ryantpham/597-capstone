@@ -83,6 +83,36 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
+.weather-panel-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.weather-tab {
+  flex: 1;
+  padding: 11px 0;
+  border: none;
+  background: none;
+  color: #8892b0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  border-bottom: 2px solid transparent;
+}
+
+.weather-tab:hover {
+  color: #c0c0c0;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.weather-tab.active {
+  color: #63b3ed;
+  border-bottom-color: #63b3ed;
+  background: rgba(99, 179, 237, 0.06);
+}
+
 .weather-panel-body {
   flex: 1;
   overflow-y: auto;

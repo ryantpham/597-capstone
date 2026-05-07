@@ -45,14 +45,14 @@ function escapeCSV(val) {
     : str;
 }
 
-function WeatherDataPanel({ type, onClose }) {
+function WeatherDataPanel({ onClose }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timestamp, setTimestamp] = useState(null);
+  const [tab, setTab] = useState('wave');
 
-  const isWave = type === 'wave';
-  const title = isWave ? 'Wave Height Data' : 'Wind Direction Data';
+  const isWave = tab === 'wave';
 
   useEffect(() => {
     async function load() {
@@ -99,7 +99,7 @@ function WeatherDataPanel({ type, onClose }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${type}-data-${new Date().toISOString().slice(0, 19)}.csv`;
+    a.download = `${tab}-data-${new Date().toISOString().slice(0, 19)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -111,7 +111,7 @@ function WeatherDataPanel({ type, onClose }) {
       <div className="weather-panel">
         <div className="weather-panel-header">
           <div className="weather-panel-title">
-            <h2>{title}</h2>
+            <h2>Weather Data</h2>
             {timestamp && (
               <span className="weather-panel-meta">
                 {points.length} points &middot; {new Date(timestamp).toLocaleTimeString()}
@@ -130,6 +130,21 @@ function WeatherDataPanel({ type, onClose }) {
               Close
             </button>
           </div>
+        </div>
+
+        <div className="weather-panel-tabs">
+          <button
+            className={`weather-tab${isWave ? ' active' : ''}`}
+            onClick={() => setTab('wave')}
+          >
+            Wave Height
+          </button>
+          <button
+            className={`weather-tab${!isWave ? ' active' : ''}`}
+            onClick={() => setTab('wind')}
+          >
+            Wind Direction
+          </button>
         </div>
 
         <div className="weather-panel-body">
