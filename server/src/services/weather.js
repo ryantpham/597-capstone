@@ -1,4 +1,5 @@
 const https = require('https');
+const { pushLog } = require('./logger');
 
 // 20 confirmed ocean waypoints for wave height (marine model only covers water)
 const OCEAN_POINTS = [
@@ -25,6 +26,7 @@ const WIND_GRID = (() => {
 const CACHE_TTL = 60 * 60 * 1000;
 let cache = null;
 let cacheTime = 0;
+let fetchStatus = 'idle'; // 'idle' | 'ready' | 'error'
 
 function fetchJSON(url) {
   return new Promise((resolve, reject) => {
@@ -58,14 +60,21 @@ async function getWeatherData() {
   const windLons = WIND_GRID.map((p) => p.lon).join(',');
 
   console.log(`[Weather] Fetching Open-Meteo: ${OCEAN_POINTS.length} wave points, ${WIND_GRID.length} wind points`);
+  pushLog('Weather', 'info', `Fetching Open-Meteo — ${OCEAN_POINTS.length} wave points, ${WIND_GRID.length} wind points`);
 
   const [waveRes, windRes] = await Promise.allSettled([
     fetchJSON(`https://marine-api.open-meteo.com/v1/marine?latitude=${waveLats}&longitude=${waveLons}&current=wave_height,wave_direction&timezone=UTC`),
     fetchJSON(`https://api.open-meteo.com/v1/forecast?latitude=${windLats}&longitude=${windLons}&current=wind_speed_10m,wind_direction_10m&timezone=UTC`),
   ]);
 
-  if (waveRes.status === 'rejected') console.error('[Weather] Wave fetch failed:', waveRes.reason?.message);
-  if (windRes.status === 'rejected') console.error('[Weather] Wind fetch failed:', windRes.reason?.message);
+  if (waveRes.status === 'rejected') {
+    console.error('[Weather] Wave fetch failed:', waveRes.reason?.message);
+    pushLog('Weather', 'error', `Wave fetch failed: ${waveRes.reason?.message}`);
+  }
+  if (windRes.status === 'rejected') {
+    console.error('[Weather] Wind fetch failed:', windRes.reason?.message);
+    pushLog('Weather', 'error', `Wind fetch failed: ${windRes.reason?.message}`);
+  }
 
   const waveArr = waveRes.status === 'fulfilled' && Array.isArray(waveRes.value) ? waveRes.value : [];
   const windArr = windRes.status === 'fulfilled' && Array.isArray(windRes.value) ? windRes.value : [];
@@ -87,8 +96,20 @@ async function getWeatherData() {
   const result = { wavePoints, windPoints };
   cache = result;
   cacheTime = Date.now();
+  fetchStatus = (wavePoints.length > 0 || windPoints.length > 0) ? 'ready' : 'error';
+
   console.log(`[Weather] Cached ${wavePoints.length} wave + ${windPoints.length} wind points`);
+  pushLog('Weather', 'info', `Cached ${wavePoints.length} wave + ${windPoints.length} wind points (TTL: 1h)`);
   return result;
 }
 
-module.exports = { getWeatherData };
+function getWeatherStatus() {
+  return {
+    status: fetchStatus,
+    lastFetch: cacheTime > 0 ? new Date(cacheTime).toISOString() : null,
+    wavePointCount: cache?.wavePoints?.length ?? 0,
+    windPointCount: cache?.windPoints?.length ?? 0,
+  };
+}
+
+module.exports = { getWeatherData, getWeatherStatus };

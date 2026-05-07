@@ -166,7 +166,36 @@ The fetch is also lazy on the client: `WeatherLayer` tracks whether a fetch has 
 
 ---
 
-## Milestone 3 and Beyond
+## Milestone 3: System Health and Live Monitoring
+
+**Status: Complete**
+
+### Features Delivered
+
+**System Information panel**
+A modal panel accessible from the sidebar ("System Information" button under Vessel Data) that gives a real-time operational picture of all backend services. Polls `GET /api/system/health` every 5 seconds and displays three sections:
+
+- **API Status cards** — one card per service (AIS Stream, Weather API). Each card shows a colored status dot (green = connected/ready, pulsing yellow = connecting/reconnecting, red = disconnected/error), a plain-English status label, and key stats (vessel count, message count, last fetch time, data point counts).
+- **Live vessel count by category** — horizontal bar chart sorted by count, colored to match the map markers (Cargo = blue, Tanker = red, Passenger = purple, etc.). Updates every poll cycle as vessels arrive, depart, or are reclassified.
+- **Live log feed** — a scrollable, newest-first feed of log entries from both the AIS and weather services. Entries are color-coded by source (AIS = blue, Weather = green) and level (warn = yellow, error = red). The feed holds the last 150 entries in a server-side circular buffer and auto-scrolls when new entries arrive.
+
+**Shared server-side log buffer**
+A new `logger.js` service provides a `pushLog(source, level, message)` function that appends timestamped entries to a 150-entry circular buffer. Both `aisstream.js` and `weather.js` call `pushLog` on all meaningful events: connection open/close/error, first data received, stale vessel cleanup, periodic stats, weather fetch start/success/error, and cache writes. This gives the System Information panel a live narrative of server activity without requiring a logging framework or persistent storage.
+
+**`GET /api/system/health` endpoint**
+Returns a single JSON snapshot containing:
+- AIS connection status, positioned vessel count, total message count, and vessel counts grouped by category
+- Weather fetch status, last fetch timestamp, and cached point counts for wave and wind data
+- The full log buffer (up to 150 entries)
+
+### Key Architecture Decision: In-Process Circular Buffer Instead of a Logging Framework
+A proper production system would route logs through a structured logging library (Winston, Pino) to a log aggregation service (Datadog, Splunk, CloudWatch). For this platform, that would be significant infrastructure overhead — API keys, agents, billing, and a separate service to maintain — for a feature whose purpose is to demonstrate live observability, not to provide production-grade log retention.
+
+The in-memory circular buffer gives the same user-facing result (a live, scrolling log feed visible in the UI) with a single 12-line module. The tradeoff is that logs reset on server restart and are not queryable. That tradeoff is acceptable for the academic context and makes the implementation auditable without external dependencies.
+
+---
+
+## Milestone 4 and Beyond
 
 *To be documented as development continues.*
 
@@ -201,10 +230,12 @@ The client proxies all `/api` requests to `localhost:3001` via CRA's built-in pr
 │   ├── src/
 │   │   ├── routes/
 │   │   │   ├── vesselRoutes.js          # GET /api/vessels
-│   │   │   └── weatherRoutes.js         # GET /api/weather/data
+│   │   │   ├── weatherRoutes.js         # GET /api/weather/data
+│   │   │   └── systemRoutes.js          # GET /api/system/health
 │   │   └── services/
-│   │       ├── aisstream.js             # AISStream WebSocket + vesselMap + cleanup
-│   │       └── weather.js               # Open-Meteo fetch + 1-hour cache
+│   │       ├── aisstream.js             # AISStream WebSocket + vesselMap + cleanup + status exports
+│   │       ├── weather.js               # Open-Meteo fetch + 1-hour cache + status export
+│   │       └── logger.js                # 150-entry circular log buffer (pushLog / getLogs)
 │   └── .env                             # AISSTREAM_API_KEY (not in version control)
 │
 └── client/
@@ -216,6 +247,7 @@ The client proxies all `/api` requests to `localhost:3001` via CRA's built-in pr
         │   ├── WeatherLayer.js          # L.circle wave overlay + animated wind arrows
         │   ├── VesselDataPanel.js       # Vessel table with search, filter, CSV export
         │   ├── WeatherDataPanel.js      # Wave/wind data table with condition badges, CSV export
+        │   ├── SystemInfoPanel.js       # API status cards, category bars, live log feed
         │   └── Sidebar.js              # Navigation, weather toggles, data view buttons
         └── [component].css              # Per-component styles, consistent dark theme
 ```

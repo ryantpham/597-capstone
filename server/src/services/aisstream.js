@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const { pushLog } = require('./logger');
 
 const vesselMap = new Map();
 let ws = null;
@@ -6,6 +7,7 @@ let reconnectTimeout = null;
 const RECONNECT_INTERVAL = 10000;
 let receivedData = false;
 let messageCount = 0;
+let aisStatus = 'disconnected';
 
 // AIS ship type codes → category
 function getShipCategory(typeCode) {
@@ -34,11 +36,15 @@ function startAISStream() {
   if (ws && ws.readyState === WebSocket.OPEN) return;
 
   console.log('[AIS] Connecting to AISStream.io...');
+  pushLog('AIS', 'info', 'Connecting to AISStream.io...');
+  aisStatus = 'connecting';
   ws = new WebSocket('wss://stream.aisstream.io/v0/stream');
   receivedData = false;
 
   ws.on('open', () => {
     console.log('[AIS] Connected — sending subscription');
+    pushLog('AIS', 'info', 'Connected — subscription sent (bbox: 24–50N, 130–60W)');
+    aisStatus = 'connected';
 
     const subscription = {
       APIKey: process.env.AISSTREAM_API_KEY,
@@ -55,6 +61,7 @@ function startAISStream() {
       if (!receivedData) {
         receivedData = true;
         console.log('[AIS] Receiving vessel data...');
+        pushLog('AIS', 'info', 'Live vessel data stream active');
       }
 
       messageCount++;
@@ -98,12 +105,15 @@ function startAISStream() {
       }
     } catch (err) {
       console.error('[AIS] Parse error:', err.message);
+      pushLog('AIS', 'error', `Parse error: ${err.message}`);
     }
   });
 
   ws.on('close', (code) => {
+    aisStatus = 'reconnecting';
     if (receivedData) {
       console.log(`[AIS] Disconnected (code: ${code}) after ${messageCount} messages. Reconnecting...`);
+      pushLog('AIS', 'warn', `Disconnected (code ${code}) after ${messageCount} messages — reconnecting in 10s`);
     }
     ws = null;
     scheduleReconnect();
@@ -111,6 +121,7 @@ function startAISStream() {
 
   ws.on('error', (err) => {
     console.error('[AIS] WebSocket error:', err.message);
+    pushLog('AIS', 'error', `WebSocket error: ${err.message}`);
     if (ws) ws.close();
   });
 }
@@ -124,12 +135,29 @@ function scheduleReconnect() {
 }
 
 function getVessels() {
-  // Only return vessels that have position data
   return Array.from(vesselMap.values()).filter((v) => v.latitude != null);
 }
 
 function getVesselCount() {
   return vesselMap.size;
+}
+
+function getAISStatus() {
+  return aisStatus;
+}
+
+function getVesselsByCategory() {
+  const counts = {};
+  for (const vessel of vesselMap.values()) {
+    if (vessel.latitude == null) continue;
+    const cat = vessel.shipCategory || 'Unknown';
+    counts[cat] = (counts[cat] || 0) + 1;
+  }
+  return counts;
+}
+
+function getMessageCount() {
+  return messageCount;
 }
 
 // Clean stale entries older than 5 minutes
@@ -144,6 +172,7 @@ setInterval(() => {
   }
   if (removed > 0) {
     console.log(`[AIS] Cleaned ${removed} stale entries. Active vessels: ${vesselMap.size}`);
+    pushLog('AIS', 'info', `Pruned ${removed} stale tracks — ${vesselMap.size} vessels active`);
   }
 }, 60000);
 
@@ -151,7 +180,8 @@ setInterval(() => {
 setInterval(() => {
   if (vesselMap.size > 0) {
     console.log(`[AIS] Active vessels: ${vesselMap.size} | Messages received: ${messageCount}`);
+    pushLog('AIS', 'info', `Active vessels: ${vesselMap.size} | Total messages: ${messageCount.toLocaleString()}`);
   }
 }, 30000);
 
-module.exports = { startAISStream, getVessels, getVesselCount };
+module.exports = { startAISStream, getVessels, getVesselCount, getAISStatus, getVesselsByCategory, getMessageCount };
