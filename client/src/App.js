@@ -14,8 +14,7 @@ function App() {
   const [showWaves, setShowWaves] = useState(false);
   const [showWind, setShowWind] = useState(false);
   const [weatherStatus, setWeatherStatus] = useState('idle'); // idle | loading | ready | error
-  const [showWavePanel, setShowWavePanel] = useState(false);
-  const [showWindPanel, setShowWindPanel] = useState(false);
+  const [showWeatherData, setShowWeatherData] = useState(false);
   const [showSystemInfo, setShowSystemInfo] = useState(false);
   const [showFleetAnalytics, setShowFleetAnalytics] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -26,7 +25,7 @@ function App() {
   return (
     <div className="App">
       <button
-        className={`hamburger-btn ${sidebarOpen ? 'open' : ''}`}
+        className={`hamburger-btn ${sidebarOpen ? 'hidden' : ''}`}
         onClick={() => setSidebarOpen(!sidebarOpen)}
         aria-label="Toggle menu"
       >
@@ -38,6 +37,7 @@ function App() {
       <div className="app-layout">
         {sidebarOpen && (
           <Sidebar
+            onClose={() => setSidebarOpen(false)}
             onViewVesselData={() => setShowVesselData(true)}
             onViewFleetAnalytics={() => setShowFleetAnalytics(true)}
             onViewFilterPanel={() => setShowFilterPanel(true)}
@@ -48,8 +48,7 @@ function App() {
             onToggleWaves={() => setShowWaves((v) => !v)}
             onToggleWind={() => setShowWind((v) => !v)}
             weatherStatus={weatherStatus}
-            onViewWaveData={() => setShowWavePanel(true)}
-            onViewWindData={() => setShowWindPanel(true)}
+            onViewWeatherData={() => setShowWeatherData(true)}
           />
         )}
         <div className="map-area">
@@ -65,11 +64,8 @@ function App() {
       {showVesselData && (
         <VesselDataPanel onClose={() => setShowVesselData(false)} />
       )}
-      {showWavePanel && (
-        <WeatherDataPanel type="wave" onClose={() => setShowWavePanel(false)} />
-      )}
-      {showWindPanel && (
-        <WeatherDataPanel type="wind" onClose={() => setShowWindPanel(false)} />
+      {showWeatherData && (
+        <WeatherDataPanel onClose={() => setShowWeatherData(false)} />
       )}
       {showFleetAnalytics && (
         <FleetAnalyticsPanel onClose={() => setShowFleetAnalytics(false)} />
