@@ -25,7 +25,7 @@ function App() {
   return (
     <div className="App">
       <button
-        className={`hamburger-btn ${sidebarOpen ? 'open' : ''}`}
+        className={`hamburger-btn ${sidebarOpen ? 'hidden' : ''}`}
         onClick={() => setSidebarOpen(!sidebarOpen)}
         aria-label="Toggle menu"
       >
@@ -37,6 +37,7 @@ function App() {
       <div className="app-layout">
         {sidebarOpen && (
           <Sidebar
+            onClose={() => setSidebarOpen(false)}
             onViewVesselData={() => setShowVesselData(true)}
             onViewFleetAnalytics={() => setShowFleetAnalytics(true)}
             onViewFilterPanel={() => setShowFilterPanel(true)}

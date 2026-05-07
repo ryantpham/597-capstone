@@ -19,6 +19,11 @@ html, body, #root, .App {
 }
 
 /* Hamburger Button */
+.hamburger-btn.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .hamburger-btn {
   position: fixed;
   top: 12px;
@@ -47,14 +52,3 @@ html, body, #root, .App {
   transition: transform 0.25s, opacity 0.25s;
 }
 
-.hamburger-btn.open .hamburger-line:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.hamburger-btn.open .hamburger-line:nth-child(2) {
-  opacity: 0;
-}
-
-.hamburger-btn.open .hamburger-line:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}

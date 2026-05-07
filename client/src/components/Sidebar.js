@@ -1,6 +1,7 @@
 import './Sidebar.css';
 
 function Sidebar({
+  onClose,
   onViewVesselData,
   onViewSystemInfo,
   onViewFleetAnalytics,
@@ -19,6 +20,9 @@ function Sidebar({
     <div className="sidebar">
       <div className="sidebar-header">
         <h2>Naval Intelligence</h2>
+        <button className="sidebar-collapse-btn" onClick={onClose} aria-label="Close sidebar">
+          &#8249;
+        </button>
       </div>
       <nav className="sidebar-nav">
         <span className="sidebar-section-label">Vessel Data</span>
