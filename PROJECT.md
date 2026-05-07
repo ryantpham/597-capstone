@@ -195,13 +195,71 @@ The in-memory circular buffer gives the same user-facing result (a live, scrolli
 
 ---
 
-## Milestone 4 and Beyond
+## Milestone 4: Fleet Analytics Dashboard
 
-*To be documented as development continues.*
+**Status: Complete**
+
+### Features Delivered
+
+**Fleet Analytics panel**
+A comprehensive analytics interface accessible from the sidebar ("Fleet Analytics," positioned below "View Vessel Data"). All statistics are computed client-side from the existing `/api/vessels` and `/api/weather/data` endpoints. Vessel data auto-refreshes every 30 seconds; weather data is fetched once per session (served from the server's 1-hour cache).
+
+The panel is organized into eight sections:
+
+**1. Fleet Overview Cards**
+Six summary cards across the top: total vessels tracked, underway count (SOG > 0.5 kn) with percentage of fleet, stationary/anchored count with percentage, average speed across all vessels with median alongside it, maximum speed with the fastest vessel's name, and unique destination ports reported.
+
+**2. Fleet Composition by Vessel Type**
+Horizontal bar chart of all vessel categories sorted by count. Each bar is colored to match the map marker for that category (Cargo = blue, Tanker = red, Passenger = purple, etc.) and labeled with both the raw count and percentage of the total fleet.
+
+**3. Speed Distribution Histogram**
+Vessels bucketed into six speed ranges: Stationary (0–0.5 kn), Very Slow (0.5–3 kn), Slow (3–8 kn), Moderate (8–14 kn), Fast (14–20 kn), and Very Fast (20+ kn). Each bucket is color-coded from gray through red to communicate intensity.
+
+**4. Navigational Status Breakdown**
+All ten AIS navigational status codes (Underway by Engine, At Anchor, Moored, Not Under Command, Restricted Maneuverability, etc.) broken out with counts and percentages. This is derived from the self-reported `NavigationalStatus` field in AIS PositionReport messages.
+
+**5. Regional Distribution**
+Vessels classified into four maritime regions by coordinate: Pacific (lon ≤ -110°), Gulf of Mexico (lon -80 to -100°, lat < 32°), Caribbean (lat < 32°, lon > -88°), and Atlantic (remainder). Gives an immediate sense of where active maritime traffic is concentrated across the AIS bounding box.
+
+**6. Speed Intelligence by Vessel Type**
+Full-width table with one row per category: vessel count, underway count, percentage underway (with an inline bar), average speed, median speed, and max speed. Median is included alongside average to flag categories where a small number of fast outliers skew the mean.
+
+**7. Top 10 Fastest Vessels**
+Ranked table with gold/silver/bronze medal indicators for the top three. Columns: rank, ship name, MMSI, category (with color dot), speed (highlighted badge), course over ground, true heading, and destination. Updates on every 30-second vessel refresh.
+
+**8. Top 10 Destinations**
+Ports and waypoints with the most vessels currently headed to them. Each row shows the destination name, a proportional count bar, and category pills (e.g., "Cargo," "Tanker") showing which vessel types are represented in the inbound traffic.
+
+**9. Wave Height Statistics**
+Pulled from the cached weather data: average, maximum, and minimum wave height across all 20 ocean measurement points, each annotated with a condition label (Calm / Light / Moderate / Rough / Very Rough / Dangerous). The coordinates of the roughest measurement point are displayed. A condition distribution bar chart shows how many of the 20 points fall into each category.
+
+**10. Wind Speed Statistics**
+Average, maximum, and minimum wind speed across all 90 grid points, each annotated with a wind category (Calm / Light / Moderate / Strong / Gale). Coverage area is shown (25–50°N, 60–130°W). A category distribution bar chart shows the breakdown across the full wind grid.
+
+### Key Architecture Decision: Client-Side Analytics, No Aggregation Endpoint
+All statistics in the Fleet Analytics panel are computed in the browser from the raw vessel array returned by `/api/vessels`. No new aggregation endpoint was added to the server. This keeps the server stateless and simple — it returns raw data, the client derives meaning from it.
+
+The tradeoff is that if the vessel count grows very large (10,000+), JavaScript array operations in the render path could introduce latency. For the current scale (~1,400 vessels), computing a dozen sorted groupings and statistical summaries in a single pass takes under 5ms and is imperceptible. If scale increases significantly, a `GET /api/analytics` endpoint that returns pre-computed aggregates server-side would be the right migration path.
 
 ---
 
 ## Running the Project
+
+**Prerequisites:** Node.js 18+, an AISStream.io API key in `server/.env`
+
+```bash
+# Backend
+cd server
+npm install
+npm run dev          # nodemon, port 3001
+
+# Frontend (separate terminal)
+cd client
+npm install
+npm start            # CRA dev server, port 3000
+```
+
+The client proxies all `/api` requests to `localhost:3001` via CRA's built-in proxy configuration.
 
 **Prerequisites:** Node.js 18+, an AISStream.io API key in `server/.env`
 
@@ -248,6 +306,7 @@ The client proxies all `/api` requests to `localhost:3001` via CRA's built-in pr
         │   ├── VesselDataPanel.js       # Vessel table with search, filter, CSV export
         │   ├── WeatherDataPanel.js      # Wave/wind data table with condition badges, CSV export
         │   ├── SystemInfoPanel.js       # API status cards, category bars, live log feed
+        │   ├── FleetAnalyticsPanel.js  # Full analytics dashboard — stats, charts, tables, weather
         │   └── Sidebar.js              # Navigation, weather toggles, data view buttons
         └── [component].css              # Per-component styles, consistent dark theme
 ```

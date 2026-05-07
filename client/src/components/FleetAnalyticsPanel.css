@@ -1,0 +1,401 @@
+/* ── Overlay & Panel Shell ─────────────────────────────────────────────────── */
+
+.fa-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.fa-panel {
+  width: 92vw;
+  max-width: 1200px;
+  max-height: 90vh;
+  background: #0f172a;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7);
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+
+.fa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  background: #1a1a2e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.fa-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: 0.3px;
+}
+
+.fa-meta {
+  font-size: 11px;
+  color: #4a5568;
+  margin-top: 3px;
+  display: block;
+}
+
+.fa-close {
+  padding: 7px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.fa-close:hover { background: rgba(255, 255, 255, 0.11); }
+
+.fa-status-msg {
+  padding: 60px 24px;
+  text-align: center;
+  color: #8892b0;
+  font-size: 14px;
+}
+
+/* ── Scrollable Body ──────────────────────────────────────────────────────── */
+
+.fa-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Stat Cards Row ───────────────────────────────────────────────────────── */
+
+.fa-cards {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.fa-stat-card {
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 3px solid #63b3ed;
+  border-radius: 6px;
+  padding: 14px 14px 12px;
+}
+
+.fa-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.fa-stat-label {
+  font-size: 11px;
+  color: #8892b0;
+  margin-top: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.fa-stat-sub {
+  font-size: 11px;
+  color: #4a5568;
+  margin-top: 4px;
+}
+
+/* ── Two-column layout ────────────────────────────────────────────────────── */
+
+.fa-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+/* ── Card Section ─────────────────────────────────────────────────────────── */
+
+.fa-card-section {
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 16px 18px;
+}
+
+.fa-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #c0d0e8;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fa-section-meta {
+  font-size: 11px;
+  font-weight: 400;
+  color: #4a5568;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.fa-section-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 14px 0;
+}
+
+.fa-section-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8892b0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+/* ── Bar Chart ────────────────────────────────────────────────────────────── */
+
+.fa-bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fa-bar-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 36px 44px;
+  align-items: center;
+  gap: 8px;
+}
+
+.fa-bar-label {
+  font-size: 12px;
+  color: #c0c0c0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fa-bar-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fa-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  opacity: 0.82;
+  transition: width 0.4s ease;
+}
+
+.fa-bar-count {
+  font-size: 12px;
+  color: #8892b0;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  text-align: right;
+}
+
+.fa-bar-pct {
+  font-size: 11px;
+  color: #4a5568;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  text-align: right;
+}
+
+/* ── Tables ───────────────────────────────────────────────────────────────── */
+
+.fa-table-wrap {
+  overflow-x: auto;
+}
+
+.fa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.fa-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.fa-table th {
+  background: #0f3460;
+  color: #c0d0e8;
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.fa-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: #c0c0c0;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.fa-table tbody tr:hover td { background: rgba(255, 255, 255, 0.03); }
+
+.fa-row-highlight td {
+  background: rgba(99, 179, 237, 0.05);
+}
+
+.fa-mono {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 12px;
+}
+
+.fa-rank {
+  font-weight: 700;
+  color: #8892b0;
+  font-size: 12px;
+}
+
+.fa-cat-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 7px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.fa-speed-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+/* % underway bar inside table cell */
+.fa-pct-bar-wrap {
+  display: inline-block;
+  width: 50px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+.fa-pct-bar {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  opacity: 0.7;
+  transition: width 0.4s;
+}
+
+/* Destination bar */
+.fa-dest-bar-wrap {
+  display: inline-block;
+  width: 60px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+.fa-dest-bar {
+  display: block;
+  height: 100%;
+  background: #63b3ed;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+
+/* Category pills in destination table */
+.fa-type-pill {
+  display: inline-block;
+  padding: 1px 7px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-right: 4px;
+  margin-bottom: 2px;
+  opacity: 0.85;
+}
+
+/* ── Weather Stats ────────────────────────────────────────────────────────── */
+
+.fa-weather-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+.fa-weather-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fa-weather-label {
+  font-size: 12px;
+  color: #8892b0;
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.fa-weather-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.fa-weather-cond {
+  font-size: 11px;
+  color: #4a5568;
+  margin-left: auto;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .fa-cards { grid-template-columns: repeat(3, 1fr); }
+  .fa-two-col { grid-template-columns: 1fr; }
+  .fa-bar-row { grid-template-columns: 120px 1fr 32px 40px; }
+}
+
+@media (max-width: 600px) {
+  .fa-cards { grid-template-columns: repeat(2, 1fr); }
+  .fa-body { padding: 14px 16px; }
+}
