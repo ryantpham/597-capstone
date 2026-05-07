@@ -130,14 +130,27 @@ Two new modal data panels accessible from the sidebar, styled to match the Vesse
 
 Both panels include a CSV download. Buttons are disabled until weather data has been loaded (sidebar shows a pulsing "Fetching weather data..." status during the initial fetch).
 
-**Vessel search and filtering**
-The Vessel Data Panel now includes a persistent filter bar:
+**Vessel search and filtering (data panel)**
+The Vessel Data Panel includes a persistent filter bar:
 - **Text search** — filters by ship name, MMSI, or call sign (case-insensitive, partial match)
 - **Type dropdown** — filters by derived vessel category (populated dynamically from the loaded vessel set)
 - **Result counter** — shows matched / total when a filter is active
 - **Clear button** — resets all filters with one click
 
 The CSV download exports the filtered view, not the full dataset.
+
+**Filter Vessels panel (map layer control)**
+A dedicated map-control panel accessible from the sidebar ("Filter Vessels") that filters which vessels are rendered on the map in real time. Filters persist when the panel is closed and are re-applied on every 30-second vessel refresh. The sidebar button shows an active filter count badge (e.g., "3 ON") whenever any filter is set, and a "Reset All" button inside the panel clears everything back to defaults.
+
+Six independent filter controls:
+- **Vessel Category** — 3-column checkbox grid for all 19 AIS vessel types, each color-coded to match its map marker. Individual categories can be toggled in/out; "None (show all)" restores full visibility.
+- **Movement Status** — pill toggle between All Vessels, Underway Only (SOG > 0.5 kn), and Stationary Only (SOG ≤ 0.5 kn).
+- **Speed Range** — minimum and maximum speed inputs in knots; either bound can be set independently.
+- **Destination** — partial case-insensitive text match against the vessel's reported destination field (e.g., typing "seattle" matches "SEATTLE", "PORT OF SEATTLE", "SEATTLE WA"). Eight common port quick-chips (Seattle, Houston, Miami, New York, Los Angeles, New Orleans, Tampa, Boston) fill the input with one click.
+- **Navigational Status** — checkbox list for the eight most common AIS nav status codes (Underway by Engine, At Anchor, Moored, Not Under Command, Restricted Maneuverability, Engaged in Fishing, Underway by Sailing, Undefined).
+- **Geographic Region** — pill toggle between All, Pacific (lon ≤ -110°), Gulf of Mexico, Caribbean, and Atlantic.
+
+Filters are applied inside `VesselLayer` via a `passesFilter(vessel, filters)` function that runs after every fetch cycle and also in a dedicated `useEffect` that fires whenever the `filters` prop changes. Cluster membership is updated with `cluster.clearLayers()` followed by re-adding only matching markers — all marker objects are retained in memory and never re-created on a filter change.
 
 **Sidebar weather section**
 The sidebar has two labeled sections: "Vessel Data" and "Weather Overlays." The Weather Overlays section contains "View Wave Height" and "View Wind Direction" data panel buttons (above the toggles), followed by the map layer toggle buttons. Each toggle shows an "ON" badge when active and a blue inset-border highlight. Data view buttons are disabled until the weather fetch completes.
@@ -172,8 +185,8 @@ The fetch is also lazy on the client: `WeatherLayer` tracks whether a fetch has 
 
 ### Features Delivered
 
-**System Information panel**
-A modal panel accessible from the sidebar ("System Information" button under Vessel Data) that gives a real-time operational picture of all backend services. Polls `GET /api/system/health` every 5 seconds and displays three sections:
+**System Status panel**
+A modal panel accessible from the sidebar ("System Status" button under Vessel Data) that gives a real-time operational picture of all backend services. Polls `GET /api/system/health` every 5 seconds and displays three sections:
 
 - **API Status cards** — one card per service (AIS Stream, Weather API). Each card shows a colored status dot (green = connected/ready, pulsing yellow = connecting/reconnecting, red = disconnected/error), a plain-English status label, and key stats (vessel count, message count, last fetch time, data point counts).
 - **Live vessel count by category** — horizontal bar chart sorted by count, colored to match the map markers (Cargo = blue, Tanker = red, Passenger = purple, etc.). Updates every poll cycle as vessels arrive, depart, or are reclassified.
@@ -202,9 +215,9 @@ The in-memory circular buffer gives the same user-facing result (a live, scrolli
 ### Features Delivered
 
 **Fleet Analytics panel**
-A comprehensive analytics interface accessible from the sidebar ("Fleet Analytics," positioned below "View Vessel Data"). All statistics are computed client-side from the existing `/api/vessels` and `/api/weather/data` endpoints. Vessel data auto-refreshes every 30 seconds; weather data is fetched once per session (served from the server's 1-hour cache).
+A comprehensive analytics interface accessible from the sidebar ("Fleet Analytics"). All statistics are computed client-side from the existing `/api/vessels` and `/api/weather/data` endpoints. Vessel data auto-refreshes every 30 seconds; weather data is fetched once per session (served from the server's 1-hour cache).
 
-The panel is organized into eight sections:
+The panel is organized into ten sections:
 
 **1. Fleet Overview Cards**
 Six summary cards across the top: total vessels tracked, underway count (SOG > 0.5 kn) with percentage of fleet, stationary/anchored count with percentage, average speed across all vessels with median alongside it, maximum speed with the fastest vessel's name, and unique destination ports reported.
@@ -261,22 +274,6 @@ npm start            # CRA dev server, port 3000
 
 The client proxies all `/api` requests to `localhost:3001` via CRA's built-in proxy configuration.
 
-**Prerequisites:** Node.js 18+, an AISStream.io API key in `server/.env`
-
-```bash
-# Backend
-cd server
-npm install
-npm run dev          # nodemon, port 3001
-
-# Frontend (separate terminal)
-cd client
-npm install
-npm start            # CRA dev server, port 3000
-```
-
-The client proxies all `/api` requests to `localhost:3001` via CRA's built-in proxy configuration.
-
 ---
 
 ## File Structure
@@ -301,12 +298,13 @@ The client proxies all `/api` requests to `localhost:3001` via CRA's built-in pr
         ├── App.js                       # Root layout, sidebar/panel state, weather toggles
         ├── components/
         │   ├── Map.js                   # MapContainer, theme toggle, WeatherLayer wiring
-        │   ├── VesselLayer.js           # Polls /api/vessels, manages marker cluster
+        │   ├── VesselLayer.js           # Polls /api/vessels, manages marker cluster + filter sync
         │   ├── WeatherLayer.js          # L.circle wave overlay + animated wind arrows
         │   ├── VesselDataPanel.js       # Vessel table with search, filter, CSV export
         │   ├── WeatherDataPanel.js      # Wave/wind data table with condition badges, CSV export
+        │   ├── FilterPanel.js           # Map filter controls — category, speed, destination, region
+        │   ├── FleetAnalyticsPanel.js   # Full analytics dashboard — stats, charts, tables, weather
         │   ├── SystemInfoPanel.js       # API status cards, category bars, live log feed
-        │   ├── FleetAnalyticsPanel.js  # Full analytics dashboard — stats, charts, tables, weather
         │   └── Sidebar.js              # Navigation, weather toggles, data view buttons
         └── [component].css              # Per-component styles, consistent dark theme
 ```

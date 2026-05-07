@@ -38,7 +38,7 @@ function MapResizeHandler() {
   return null;
 }
 
-function Map({ showWaves, showWind, onWeatherLoad }) {
+function Map({ showWaves, showWind, onWeatherLoad, vesselFilters }) {
   const [theme, setTheme] = useState('dark');
 
   const toggleTheme = () => {
@@ -65,7 +65,7 @@ function Map({ showWaves, showWind, onWeatherLoad }) {
       >
         <ZoomControl position="bottomright" />
         <MapResizeHandler />
-        <VesselLayer />
+        <VesselLayer filters={vesselFilters} />
         <WeatherLayer showWaves={showWaves} showWind={showWind} onWeatherLoad={onWeatherLoad} />
         <TileLayer
           key={theme}
