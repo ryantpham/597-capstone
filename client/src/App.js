@@ -5,6 +5,7 @@ import VesselDataPanel from './components/VesselDataPanel';
 import WeatherDataPanel from './components/WeatherDataPanel';
 import SystemInfoPanel from './components/SystemInfoPanel';
 import FleetAnalyticsPanel from './components/FleetAnalyticsPanel';
+import FilterPanel, { DEFAULT_FILTERS, countActiveFilters } from './components/FilterPanel';
 import './App.css';
 
 function App() {
@@ -17,6 +18,8 @@ function App() {
   const [showWindPanel, setShowWindPanel] = useState(false);
   const [showSystemInfo, setShowSystemInfo] = useState(false);
   const [showFleetAnalytics, setShowFleetAnalytics] = useState(false);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [vesselFilters, setVesselFilters] = useState(DEFAULT_FILTERS);
 
   const handleWeatherLoad = useCallback((status) => setWeatherStatus(status), []);
 
@@ -37,7 +40,9 @@ function App() {
           <Sidebar
             onViewVesselData={() => setShowVesselData(true)}
             onViewFleetAnalytics={() => setShowFleetAnalytics(true)}
+            onViewFilterPanel={() => setShowFilterPanel(true)}
             onViewSystemInfo={() => setShowSystemInfo(true)}
+            activeFilterCount={countActiveFilters(vesselFilters)}
             showWaves={showWaves}
             showWind={showWind}
             onToggleWaves={() => setShowWaves((v) => !v)}
@@ -52,6 +57,7 @@ function App() {
             showWaves={showWaves}
             showWind={showWind}
             onWeatherLoad={handleWeatherLoad}
+            vesselFilters={vesselFilters}
           />
         </div>
       </div>
@@ -67,6 +73,13 @@ function App() {
       )}
       {showFleetAnalytics && (
         <FleetAnalyticsPanel onClose={() => setShowFleetAnalytics(false)} />
+      )}
+      {showFilterPanel && (
+        <FilterPanel
+          filters={vesselFilters}
+          onChange={setVesselFilters}
+          onClose={() => setShowFilterPanel(false)}
+        />
       )}
       {showSystemInfo && (
         <SystemInfoPanel onClose={() => setShowSystemInfo(false)} />

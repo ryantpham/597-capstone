@@ -51,8 +51,8 @@ function buildPopupContent(v) {
     v.shipCategory ? ['Type', `${v.shipCategory}${v.shipType ? ` (${v.shipType})` : ''}`] : null,
     ['Position', `${v.latitude?.toFixed(4)}, ${v.longitude?.toFixed(4)}`],
     ['Speed', `${v.sog?.toFixed(1)} kn`],
-    ['Course', `${v.cog?.toFixed(1)}\u00B0`],
-    v.trueHeading < 511 ? ['Heading', `${v.trueHeading}\u00B0`] : null,
+    ['Course', `${v.cog?.toFixed(1)}°`],
+    v.trueHeading < 511 ? ['Heading', `${v.trueHeading}°`] : null,
     v.destination ? ['Destination', v.destination] : null,
     ['Last Update', v.timeUtc ? v.timeUtc.split('.')[0].replace(' +0000 UTC', '') : 'N/A'],
   ].filter(Boolean);
@@ -62,11 +62,74 @@ function buildPopupContent(v) {
   </div>`;
 }
 
-function VesselLayer() {
+// ── Filter logic ───────────────────────────────────────────────────────────────
+
+function getRegion(lat, lon) {
+  if (lon <= -110) return 'Pacific';
+  if (lon > -100 && lon <= -80 && lat < 32) return 'Gulf of Mexico';
+  if (lat < 32 && lon > -88) return 'Caribbean';
+  return 'Atlantic';
+}
+
+function passesFilter(vessel, filters) {
+  // null = show all; [] = show none; [...] = show only listed
+  if (filters.categories !== null) {
+    if (!filters.categories.includes(vessel.shipCategory || 'Unknown')) return false;
+  }
+
+  const sog = vessel.sog || 0;
+  if (filters.movementStatus === 'underway'   && sog <= 0.5) return false;
+  if (filters.movementStatus === 'stationary' && sog >  0.5) return false;
+
+  const minSpd = parseFloat(filters.minSpeed);
+  const maxSpd = parseFloat(filters.maxSpeed);
+  if (!isNaN(minSpd) && filters.minSpeed !== '' && sog < minSpd) return false;
+  if (!isNaN(maxSpd) && filters.maxSpeed !== '' && sog > maxSpd) return false;
+
+  if (filters.destination.trim()) {
+    const dest = (vessel.destination || '').toLowerCase();
+    if (!dest.includes(filters.destination.trim().toLowerCase())) return false;
+  }
+
+  if (filters.navStatuses.length > 0) {
+    const ns = vessel.navStatus ?? 15;
+    if (!filters.navStatuses.includes(ns)) return false;
+  }
+
+  if (filters.region !== 'all' && vessel.latitude != null) {
+    if (getRegion(vessel.latitude, vessel.longitude) !== filters.region) return false;
+  }
+
+  return true;
+}
+
+function syncCluster(cluster, store, filters) {
+  cluster.clearLayers();
+  for (const { marker, vessel } of store.values()) {
+    if (passesFilter(vessel, filters)) {
+      cluster.addLayer(marker);
+    }
+  }
+}
+
+// ── Component ──────────────────────────────────────────────────────────────────
+
+function VesselLayer({ filters }) {
   const map = useMap();
-  const clusterRef = useRef(null);
-  const markersRef = useRef(new window.Map());
+  const clusterRef  = useRef(null);
+  const storeRef    = useRef(new window.Map()); // Map<mmsi, {marker, vessel}>
   const intervalRef = useRef(null);
+  const filtersRef  = useRef(filters);
+
+  // Keep filtersRef current so the interval callback always sees latest filters
+  filtersRef.current = filters;
+
+  // Re-sync cluster whenever filters change
+  useEffect(() => {
+    if (clusterRef.current && storeRef.current.size > 0) {
+      syncCluster(clusterRef.current, storeRef.current, filters);
+    }
+  }, [filters]);
 
   useEffect(() => {
     const cluster = L.markerClusterGroup({
@@ -84,23 +147,24 @@ function VesselLayer() {
         .then((data) => {
           const vessels = data.vessels;
           const currentMMSIs = new Set(vessels.map((v) => v.mmsi));
-          const existingMarkers = markersRef.current;
+          const store = storeRef.current;
 
-          // Remove markers for vessels no longer in data
-          for (const [mmsi, marker] of existingMarkers) {
+          // Remove departed vessels
+          for (const [mmsi, { marker }] of store) {
             if (!currentMMSIs.has(mmsi)) {
               cluster.removeLayer(marker);
-              existingMarkers.delete(mmsi);
+              store.delete(mmsi);
             }
           }
 
-          // Add or update markers
+          // Add or update
           for (const vessel of vessels) {
-            const existing = existingMarkers.get(vessel.mmsi);
-            if (existing) {
-              existing.setLatLng([vessel.latitude, vessel.longitude]);
-              existing.setIcon(createVesselIcon(vessel));
-              existing.setPopupContent(buildPopupContent(vessel));
+            const entry = store.get(vessel.mmsi);
+            if (entry) {
+              entry.vessel = vessel;
+              entry.marker.setLatLng([vessel.latitude, vessel.longitude]);
+              entry.marker.setIcon(createVesselIcon(vessel));
+              entry.marker.setPopupContent(buildPopupContent(vessel));
             } else {
               const marker = L.marker([vessel.latitude, vessel.longitude], {
                 icon: createVesselIcon(vessel),
@@ -109,10 +173,12 @@ function VesselLayer() {
                 className: 'vessel-popup-container',
                 maxWidth: 260,
               });
-              cluster.addLayer(marker);
-              existingMarkers.set(vessel.mmsi, marker);
+              store.set(vessel.mmsi, { marker, vessel });
             }
           }
+
+          // Apply current filters to cluster membership
+          syncCluster(cluster, store, filtersRef.current);
         })
         .catch(() => {});
     }

@@ -4,6 +4,8 @@ function Sidebar({
   onViewVesselData,
   onViewSystemInfo,
   onViewFleetAnalytics,
+  onViewFilterPanel,
+  activeFilterCount,
   showWaves, showWind,
   onToggleWaves, onToggleWind,
   weatherStatus,
@@ -22,6 +24,12 @@ function Sidebar({
         <span className="sidebar-section-label">Vessel Data</span>
         <button className="sidebar-item" onClick={onViewVesselData}>
           View Vessel Data
+        </button>
+        <button className="sidebar-item" onClick={onViewFilterPanel}>
+          Filter Vessels
+          {activeFilterCount > 0 && (
+            <span className="sidebar-item-badge">{activeFilterCount} ON</span>
+          )}
         </button>
         <button className="sidebar-item" onClick={onViewFleetAnalytics}>
           Fleet Analytics
