@@ -23,9 +23,8 @@ Browser (React + Leaflet)
 │     ├── Wave height overlay (L.circle geographic markers, color by height)
 │     └── Wind direction overlay (animated SVG arrow grid, 90 points)
 ├── Vessel Data Panel (table, search, filter, CSV export)
-├── Wave Height Data Panel (table, condition badges, CSV export)
-├── Wind Direction Data Panel (table, category badges, CSV export)
-└── Sidebar (navigation, weather toggles, data view buttons)
+├── Weather Data Panel (tabbed: Wave Height / Wind Direction, CSV export)
+└── Sidebar (navigation, weather toggle switches, data view buttons)
          │
          │  HTTP GET /api/vessels        (polling, every 30s)
          │  HTTP GET /api/weather/data   (lazy, on first overlay toggle)
@@ -123,12 +122,12 @@ Color-coded geographic circles rendered with Leaflet's `L.circle` at 800 km radi
 **Wind direction overlay (toggleable, animated)**
 Rotated SVG arrow markers at 90 grid points across a 5°×5° lattice spanning the full AIS bounding box. Arrow color encodes wind speed: green (≤ 8 m/s), orange (8–15 m/s), red (> 15 m/s). Each arrow pulses with a staggered CSS animation (`animation-delay` driven by a per-marker CSS custom property `--delay`) so the layer reads as a live, flowing field rather than static icons. Hovering any arrow shows wind direction in degrees and speed in m/s.
 
-**Weather data panels (View Wave Height / View Wind Direction)**
-Two new modal data panels accessible from the sidebar, styled to match the Vessel Data Panel. Each fetches `/api/weather/data` and displays a full table:
-- Wave Height panel: Latitude, Longitude, Wave Height (m), Swell From (degrees + compass), Condition (color-coded badge)
-- Wind Direction panel: Latitude, Longitude, Wind Speed (m/s), Wind From (degrees + compass), Category (color-coded badge — Calm / Light / Moderate / Strong / Gale)
+**Weather Data panel**
+A single modal panel accessible from the sidebar ("Weather Data" button) with two tabs — Wave Height and Wind Direction. Fetches `/api/weather/data` once and displays:
+- Wave Height tab: Latitude, Longitude, Wave Height (m), Swell From (degrees + compass), Condition (color-coded badge)
+- Wind Direction tab: Latitude, Longitude, Wind Speed (m/s), Wind From (degrees + compass), Category (color-coded badge — Calm / Light / Moderate / Strong / Gale)
 
-Both panels include a CSV download. Buttons are disabled until weather data has been loaded (sidebar shows a pulsing "Fetching weather data..." status during the initial fetch).
+Both tabs include a CSV download. The button is disabled until weather data has been loaded (sidebar shows a pulsing "Fetching weather data..." status during the initial fetch).
 
 **Vessel search and filtering (data panel)**
 The Vessel Data Panel includes a persistent filter bar:
@@ -152,8 +151,8 @@ Six independent filter controls:
 
 Filters are applied inside `VesselLayer` via a `passesFilter(vessel, filters)` function that runs after every fetch cycle and also in a dedicated `useEffect` that fires whenever the `filters` prop changes. Cluster membership is updated with `cluster.clearLayers()` followed by re-adding only matching markers — all marker objects are retained in memory and never re-created on a filter change.
 
-**Sidebar weather section**
-The sidebar has two labeled sections: "Vessel Data" and "Weather Overlays." The Weather Overlays section contains "View Wave Height" and "View Wind Direction" data panel buttons (above the toggles), followed by the map layer toggle buttons. Each toggle shows an "ON" badge when active and a blue inset-border highlight. Data view buttons are disabled until the weather fetch completes.
+**Sidebar layout**
+The sidebar has three labeled sections: "Vessel Data," "Weather Overlays," and "Health & Status." The Weather Overlays section contains CSS toggle switches for Wave Height and Wind Direction map overlays, followed by a "Weather Data" button that opens the tabbed data panel. Toggle switches slide on/off and are disabled until the weather fetch completes. The "Health & Status" section contains the "System Monitor" button.
 
 ### On the Weather API — What Was Evaluated and Why Open-Meteo Was Used
 
@@ -185,8 +184,8 @@ The fetch is also lazy on the client: `WeatherLayer` tracks whether a fetch has 
 
 ### Features Delivered
 
-**System Status panel**
-A modal panel accessible from the sidebar ("System Status" button under Vessel Data) that gives a real-time operational picture of all backend services. Polls `GET /api/system/health` every 5 seconds and displays three sections:
+**System Monitor panel**
+A modal panel accessible from the sidebar ("System Monitor" button under Health & Status) that gives a real-time operational picture of all backend services. Polls `GET /api/system/health` every 5 seconds and displays three sections:
 
 - **API Status cards** — one card per service (AIS Stream, Weather API). Each card shows a colored status dot (green = connected/ready, pulsing yellow = connecting/reconnecting, red = disconnected/error), a plain-English status label, and key stats (vessel count, message count, last fetch time, data point counts).
 - **Live vessel count by category** — horizontal bar chart sorted by count, colored to match the map markers (Cargo = blue, Tanker = red, Passenger = purple, etc.). Updates every poll cycle as vessels arrive, depart, or are reclassified.
